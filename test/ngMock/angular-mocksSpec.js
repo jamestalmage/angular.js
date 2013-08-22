@@ -440,6 +440,13 @@ describe('ngMock', function() {
         $timeout.flushNext(4000);
       }).toThrow("Expected a task to be scheduled with 4000ms delay, but it was 100ms.");
     }));
+
+
+    it("should throw an exception when no task was scheduled but flushNext() was called", inject(function($timeout) {
+      expect(function() {
+        $timeout.flushNext();
+      }).toThrow("Nothing to be flushed!");
+    }));
   });
 
 

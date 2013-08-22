@@ -131,6 +131,10 @@ angular.mock.$Browser = function() {
   self.defer.flushNext = function(expectedDelay) {
     var tick = self.deferredFns.shift();
 
+    if (!tick) {
+      throw new Error("Nothing to be flushed!");
+    }
+
     if (angular.isDefined(expectedDelay) && (tick.time !== expectedDelay)) {
       throw new Error("Expected a task to be scheduled with " + expectedDelay + "ms delay, but it was " + tick.time +
                       "ms.");
