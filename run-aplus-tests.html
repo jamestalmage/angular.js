@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>Promise/A+ Tests</title>
+    <link rel="stylesheet" href="node_modules/mocha/mocha.css">
+</head>
+<body ng-app="runTests">
+
+<div id="mocha"></div>
+<script src="node_modules/mocha/mocha.js"></script>
+<script>
+    mocha.setup('bdd');
+</script>
+<script src="promise-aplus-tests.js"></script>
+
+<script src="build/angular.js"></script>
+<script type="text/javascript">
+    angular.module('runTests',[])
+            .factory('promiseAdapter',function($q,$rootScope){
+
+                function applyLater(){
+                    setTimeout(function(){
+                        $rootScope.$apply();
+                    },30)
+                }
+
+                return {
+                    $q:$q,
+                    rejected: function(reason){
+                        var deferred = $q.defer();
+
+                        deferred.reject(reason);
+                      //  applyLater();
+                        return deferred.promise;
+                    },
+                    fulfilled: function(value){
+                        var deferred = $q.defer();
+                        deferred.resolve(value);
+                        //applyLater();
+                        return deferred.promise;
+                    },
+                    pending : function(){
+                        var deferred = $q.defer();
+
+                        //applyLater();
+                        return {
+                            promise: deferred.promise,
+                            fulfill: deferred.resolve,
+                            reject: deferred.reject
+                        };
+                    }
+                };
+
+
+            }).run(function(promiseAdapter){
+
+                console.log('hello: ',promiseAdapter.$q) ;
+
+
+                PromisesAplusTests.mocha(promiseAdapter);
+
+                mocha.run();
+
+
+            });
+
+
+</script>
+
+</body>
+</html>
