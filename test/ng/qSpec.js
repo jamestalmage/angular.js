@@ -950,6 +950,15 @@ describe('q', function() {
       syncResolve(deferred, rejectedPromise.then());
       expect(log).toEqual(['error(rejected)->reject(rejected)']);
     });
+
+
+    it('should catch exceptions thrown in errback and forward them to derived promises', function() {
+      var rejectedPromise = q.reject('rejected');
+      rejectedPromise.then(null, error('Broken', 'catch me!', true)).
+                      then(null, error('Affected'))
+      mockNextTick.flush();
+      expect(log).toEqual(['errorBroken(rejected)->throw(catch me!)', 'errorAffected(catch me!)->reject(catch me!)']);
+    });
   });
 
 
@@ -1401,6 +1410,17 @@ describe('q', function() {
     });
 
 
+    describe('in reject', function() {
+      it('should log exceptions thrown in errback of a rejected promise', function() {
+        var rejectedPromise = q.reject('rejected');
+        rejectedPromise.then(null, error('Broken', 'catch me!', true));
+        mockNextTick.flush();
+        expect(logStr()).toBe('errorBroken(rejected)->throw(catch me!)');
+        expect(mockExceptionLogger.log).toEqual(['catch me!']);
+      });
+    });
+
+
     describe('in when', function() {
       it('should log exceptions thrown in a success callback and reject the derived promise',
           function() {
@@ -1460,7 +1480,7 @@ describe('q', function() {
       deferred = q.defer();
     });
 
-    
+
     afterEach(function() {
       // Restore the original exception logging mode
       mockNextTick.logExceptions = originalLogExceptions;
@@ -1474,7 +1494,7 @@ describe('q', function() {
       expect(exceptionExceptionSpy).toHaveBeenCalled();
       expect(errorSpy).toHaveBeenCalled();
     });
-    
+
 
     it('should still reject the promise, when exception is thrown in success handler, even if exceptionHandler rethrows', function() {
       deferred.promise.then(null, function() { throw 'reject again'; }).then(null, errorSpy);
