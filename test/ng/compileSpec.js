@@ -4197,6 +4197,40 @@ describe('$compile', function() {
     });
 
 
+    it('should instantiate controllers with required controllers as locals', function() {
+      module(function() {
+        directive('main', function(log) {
+          return {
+            controller: function() {
+              this.name = 'main';
+            }
+          };
+        });
+        directive('dep', function(log) {
+          return {
+            require: 'main',
+            controller: function(mainController) {
+              this.name = 'dep';
+              log('dep:' + mainController.name);
+            }
+          };
+        });
+        directive('other', function(log) {
+          return {
+            require: ['main', 'dep'],
+            controller: function(mainController, depController) {
+              log('other:' + depController.name + ":" + mainController.name);
+            }
+          };
+        });
+      });
+      inject(function(log, $compile, $rootScope) {
+        element = $compile('<div main dep other></div>')($rootScope);
+        expect(log).toEqual('dep:main; other:dep:main');
+      });
+    });
+
+
     it('should get required parent controller', function() {
       module(function() {
         directive('nested', function(log) {
